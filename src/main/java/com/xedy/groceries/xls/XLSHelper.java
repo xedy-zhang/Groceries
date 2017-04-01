@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.List;
 
 import jxl.Workbook;
+import jxl.read.biff.BiffException;
 import jxl.write.Label;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
@@ -44,7 +45,7 @@ public class XLSHelper {
 	 */
 	private static File fileCreator(String filePath) throws IOException{
 		File file  = new File(filePath);
-		if(!(file.isFile() && file.exists())){
+		if(!(file.exists() && file.isFile())){
 			file.createNewFile();
 		}
 		return file;
@@ -58,7 +59,11 @@ public class XLSHelper {
 	 */
 	public static void writeXls(String filePath,AddSheetCellProcessor processor) throws IOException{
 		File file = fileCreator(filePath);
-		writeXlsWithJxl(file,processor);
+		try {
+			writeXlsWithJxl(file,processor);
+		} catch (BiffException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -66,15 +71,23 @@ public class XLSHelper {
 	 * @param file 已创建xls文件
 	 * @param processor 外部扩展处理实现
 	 * @throws IOException 数据写入异常
+	 * @throws BiffException 
 	 */
-	private static void writeXlsWithJxl(File file , AddSheetCellProcessor processor) throws IOException{
-		WritableWorkbook wb = Workbook.createWorkbook(file);
-		WritableSheet sheet = wb.createSheet("SHEET 1", 0);
-		sheet.getSettings().setVerticalFreeze(1);
+	private static void writeXlsWithJxl(File file , AddSheetCellProcessor processor) throws IOException, BiffException{
+		WritableWorkbook wwb = null;
+		WritableSheet sheet = null;
+		if(file.length() == 0){
+			wwb = Workbook.createWorkbook(file);
+			sheet = wwb.createSheet("SHEET 1", 0);
+			sheet.getSettings().setVerticalFreeze(1);
+		}else{
+			wwb = Workbook.createWorkbook(file,Workbook.getWorkbook(file));
+			sheet = wwb.getSheet(0);
+		}
 		try {
 			processor.doProcessor(sheet);
-			wb.write();
-			wb.close();
+			wwb.write();
+			wwb.close();
 		} catch (WriteException e) {
 			e.printStackTrace();
 		}

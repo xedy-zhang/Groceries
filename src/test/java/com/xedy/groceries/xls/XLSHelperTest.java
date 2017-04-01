@@ -46,7 +46,7 @@ public class XLSHelperTest extends TestCase {
 		try {
 			XLSHelper.writeXls("xls-embedded.xls",new AddSheetCellProcessor(){
 				public void doProcessor(WritableSheet sheet) throws RowsExceededException, WriteException {
-					sheet.addCell(new Label(0, 0, "嵌入xls创建过程..."));
+					sheet.addCell(new Label(0, sheet.getRows(), "嵌入xls创建过程..."));
 				}
 			});
 		} catch (IOException e) {
