@@ -30,11 +30,15 @@ public class XLSHelper {
 	 * @throws IOException 文件创建，写入异常
 	 */
 	public static void writeXls(List<List<String>> datas,String filePath) throws IOException{
-		if(datas != null && datas.size() > 0){
-			return;
+		if(datas == null || datas.size() == 0){
+			return;//无数据，则返回
 		}
 		File file = fileCreator(filePath);
-		writeXlsWithJxl(file,datas);
+		try {
+			writeXlsWithJxl(file,datas);
+		} catch (BiffException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -98,23 +102,21 @@ public class XLSHelper {
 	 * @param file xls文件对象
 	 * @param datas 待写入xls文件数据集合
 	 * @throws IOException 数据写入异常
+	 * @throws BiffException 
 	 */
-	private static void writeXlsWithJxl(File file,List<List<String>> datas) throws IOException{
-		WritableWorkbook wb = Workbook.createWorkbook(file);
-		WritableSheet sheet = wb.createSheet("SHEET 1", 0);
-		sheet.getSettings().setVerticalFreeze(1);
-		try {
-			for (int i = 0; (i < datas.size()) && i < 65536; i++) {
-				List<String> data = datas.get(i);
-				for (int x = 0 ; (x < data.size() && x < 256) ; x++) {
-					sheet.addCell(new Label(x, i, data.get(x)));
+	private static void writeXlsWithJxl(File file,final List<List<String>> datas) throws IOException, BiffException{
+		writeXlsWithJxl(file, new AddSheetCellProcessor() {
+			public void doProcessor(WritableSheet sheet) throws RowsExceededException, WriteException {
+				int rows = sheet.getRows(),cols = sheet.getColumns();
+				for (int i = 0; ( (i+rows) < 65536 && i < datas.size() ) ; i++) {
+					List<String> data = datas.get(i);
+					for (int x = 0 ; ( (cols+x) < 256 && x < data.size() ) ; x++) {
+						//已有行数+新增数据行 : rows + i
+						sheet.addCell(new Label(x, rows+i, data.get(x)));
+					}
 				}
 			}
-			wb.write();
-			wb.close();
-		} catch (WriteException e) {
-			e.printStackTrace();
-		}
+		});
 	}
 	
 	/**
