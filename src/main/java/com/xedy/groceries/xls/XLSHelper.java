@@ -127,12 +127,12 @@ public class XLSHelper {
 	public static void writeXlsx(List<List<String>> datas,String filePath){
 		//TODO: 待实现POI技术创建XLSX文件
 	}
-}
-/**
- * 增加sheet单元格
- * @author xedy_zhang@126.com
- *
- */
-interface AddSheetCellProcessor{
-	public void doProcessor(WritableSheet sheet) throws RowsExceededException, WriteException;
+	/**
+	 * 增加sheet单元格
+	 * @author xedy_zhang@126.com
+	 *
+	 */
+	public interface AddSheetCellProcessor{
+		public void doProcessor(WritableSheet sheet) throws RowsExceededException, WriteException;
+	}
 }
